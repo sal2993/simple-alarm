@@ -7,7 +7,7 @@ import subprocess
 def main():
   print "Hello to uAlarm"
 
-  if (len(sys.argv) != 3):
+  if (len(sys.argv) == 1):
     print datetime.now()
     wake_hour = raw_input("enter the alarm hour [24-hour format, 07]: ")
     wake_min = raw_input("enter the alarm min [24-hour format, 30]: ")
@@ -20,10 +20,22 @@ def main():
       
     x = datetime.now()
     print x
-  
-  # for testing purposes only
+
+  # if you want to set the alarm from the a command line argument
+  #   Ex. # ./alarm.py 7:25
+  elif (len(sys.argv) == 2):
+    # split 7:25 to time1 = [ 7 , 25 ]
+    time1 = sys.argv[1].split(":")
+    wake_hour_int = int(time1[0])
+    wake_min_int = int(time1[1])
+    
+    # Current time
+    x = datetime.now()
+    print x
+
+  # Created for debugging/TESTING purposes ONLY!
   # if want to test some times then comment the last line of file. 
-  else: 
+  elif (len(sys.argv) == 3) : 
     time1 = sys.argv[1].split(":")
     time2 = sys.argv[2].split(":")
 
@@ -31,6 +43,11 @@ def main():
     wake_min_int = int(time2[1])
 
     x = datetime(2006,1,1,int(time1[0]),int(time1[1]))
+
+  # Alarm calculations actually begin below.
+  else:
+    print "Invalid command line number of arguments"
+    print "Usage: alarm [WAKE_TIME]"
 
   alarmtime = 0
   print "Sleep time duration in Hours, Mins: "
@@ -86,7 +103,7 @@ def main():
   print "alarm seconds:"
   print alarmtime
   print "Alarm set for " + str(wake_hour_int) + ":" + str(wake_min_int)
-  output_time = "./turn.py " + str(alarmtime) 
+  output_time = "/home/pi/Programs/alarm/turn.py " + str(alarmtime) + " &"
   subprocess.call(output_time, shell=True)
 
 
