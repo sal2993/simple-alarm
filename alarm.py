@@ -2,11 +2,15 @@
 
 import sys
 from datetime import datetime
+from datetime import date
 import subprocess
 
 def main():
   print "Hello to uAlarm"
 
+  wake_video_link = ""
+
+  # If 0 command line arguments given
   if (len(sys.argv) == 1):
     print datetime.now()
     wake_hour = raw_input("enter the alarm hour [24-hour format, 07]: ")
@@ -21,6 +25,7 @@ def main():
     x = datetime.now()
     print x
 
+  # If 1 command line argument is given
   # if you want to set the alarm from the a command line argument
   #   Ex. # ./alarm.py 7:25
   elif (len(sys.argv) == 2):
@@ -28,6 +33,7 @@ def main():
     time1 = sys.argv[1].split(":")
     wake_hour_int = int(time1[0])
     wake_min_int = int(time1[1])
+    wake_video_link = "https://www.youtube.com/feed/subscriptions"
     
     # Current time
     x = datetime.now()
@@ -37,12 +43,14 @@ def main():
   # if want to test some times then comment the last line of file. 
   elif (len(sys.argv) == 3) : 
     time1 = sys.argv[1].split(":")
-    time2 = sys.argv[2].split(":")
 
-    wake_hour_int = int(time2[0])
-    wake_min_int = int(time2[1])
+    wake_video_link = sys.argv[2]
 
-    x = datetime(2006,1,1,int(time1[0]),int(time1[1]))
+    wake_hour_int = int(time1[0])
+    wake_min_int = int(time1[1])
+
+    # current time
+    x = datetime.now()
 
   # Alarm calculations actually begin below.
   else:
@@ -103,10 +111,35 @@ def main():
   print "alarm seconds:"
   print alarmtime
   print "Alarm set for " + str(wake_hour_int) + ":" + str(wake_min_int)
-  output_time = "/home/pi/Programs/alarm/turn.py " + str(alarmtime) + " &"
-  subprocess.call(output_time, shell=True)
+  print "/home/pi/Programs/alarm/turn.py " + str(alarmtime) + \
+   " " + str(wake_video_link) + " &"
 
+  # Message sent to turn.py
+  output_time = "/home/pi/Programs/alarm/turn.py " + str(alarmtime) + \
+   " " + str(wake_video_link) + " &"
+  # /Message sent
 
+  # JSON package
+  meat = r'\{' +\
+  fix_str(r"wakeup_time", str(wake_hour_int) + r':' + str(wake_min_int)) +\
+  r', ' + fix_str(r"sleep_time", str(x.hour) +r':' + str(x.minute)) +\
+  r', ' + fix_str(r"date_of_wake", x.isoformat()) +\
+  r', ' + fix_str(r"wakeup_video", wake_video_link) +\
+  r'}'
+  
+  json_info = r"ssh savior@104.131.178.67 \
+  'echo " + meat + " >>\
+ /home/savior/Applications/Kittenheads/llog_inputs/target.txt'"
+  # /JSON package
 
+  # Json sent
+  subprocess.call(json_info, shell=True)
+
+  # Delegate to turn.py
+  #subprocess.call(output_time, shell=True)
+
+# ("key", value) => {"key": "value=string"}
+def fix_str(x, y):
+  return r'\"' + str(x) + r'\"' + ":" + r'\"' + str(y) + r'\"'
 if __name__ == "__main__":
   main()
